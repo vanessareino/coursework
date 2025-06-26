@@ -23,20 +23,4 @@ smaller %>%
   geom_freqpoly(binwidth = 0.01)
 ```
 
-```{r setup, include = FALSE}
-library(ggplot2)
-library(dplyr)
-
-color <- diamonds %>% 
-  filter(color)
-```
-
-```{r, echo = FALSE}
-smaller %>% 
-  ggplot(aes(x= color, y = count())) + 
-  geom_bar()
-```
-
-
-
-We have data about 'r nrow(diamonds)' diamonds. Only 
+There exists the most diamons from 1.0 carat and lower

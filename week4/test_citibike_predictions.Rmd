@@ -1,0 +1,46 @@
+```{r load-data}
+
+library(tidyverse)
+library(scales)
+library(modelr)
+library(lubridate)
+library(ggplot2)
+
+trips_per_day_2015 <- read_tsv('./week4/trips_per_day_2015.tsv')
+weather_2015 <- read_csv('./week4/weather_2015.csv')
+
+weather_2015 <- weather_2015 |> select("DATE", "PRCP", "SNOW", "SNWD", "TMIN", "TMAX")
+
+```
+
+```{r join-data}
+
+join_weather_trip_2015 <- left_join(trips_per_day_2015, weather_2015, by = c("ymd" = "DATE"))
+
+join_weather_trip_2015 <- join_weather_trip_2015 %>%
+mutate(is_weekend = ifelse(wday(ymd, label = TRUE) %in% c("Sat", "Sun"), 1, 0)) %>%
+rename(prcp = PRCP, snow = SNOW, snwd = SNWD, tmin = TMIN, tmax = TMAX) %>%
+mutate (tmin = tmin /10) %>%
+mutate (tmax = tmax / 10)
+
+
+join_weather_trip_2015
+```
+
+```{r load-lm}
+
+model_rain_snow_weekend <- readRDS("model.RDS")
+
+test_2015_trip_weather <- predict(model_rain_snow_weekend, join_weather_trip_2015)
+
+
+complete_cases <- complete.cases(test_2015_trip_weather, join_weather_trip_2015$num_trips)
+test_2015_trip_weather <- test_2015_trip_weather[complete_cases]
+join_weather_trip_2015 <- join_weather_trip_2015[complete_cases, ]
+
+test_err <- sqrt(mean((predict(model_rain_snow_weekend, join_weather_trip_2015) - join_weather_trip_2015$num_trips)^2))
+test_err
+
+test_2015_r_squared <- cor(test_2015_trip_weather, join_weather_trip_2015$num_trips)^2
+test_2015_r_squared
+```
